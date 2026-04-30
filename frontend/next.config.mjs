@@ -2,15 +2,6 @@
 const nextConfig = {
   /* config options here */
   reactCompiler: true,
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://backend:5000/api/:path*', // The proxy destination
-      },
-      
-    ];
-  },
 };
 
 export default nextConfig;

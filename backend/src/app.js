@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.route.js";
 import passport from "passport";
 import configurePassport from "./config/passport.js";
+import chatRoutes from './routes/chat.route.js';
 
 const app = express();
 
@@ -24,5 +25,6 @@ app.get("/health",(req,res)=>{
     res.json({message: "Server is running"});
 })
 app.use("/api/auth",authRouter);
+app.use('/api/chats', chatRoutes);
 
 export default app;

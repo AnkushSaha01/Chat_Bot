@@ -12,6 +12,7 @@ const _config = {
     jwt_secret: process.env.JWT_SECRET,    
     google_client_id: process.env.GOOGLE_CLIENT_ID,
     google_client_secret: process.env.GOOGLE_CLIENT_SECRET,
+    mistral_api_key: process.env.MISTRAL_API_KEY,
   }
 
 export default Object.freeze(_config);
