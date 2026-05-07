@@ -1,12 +1,13 @@
-import { getAiResponse } from "../services/chat.api";
+import { getAiResponse } from "./chat.api";
 import {
     setChats,
     appendMessage,
+    appendMessageContent,
     appendTempMessage,
     appendTempMessageContent,
     setTempChat,
     setChatFromTempChat
-} from "../state/chat.slice"
+} from "./chat.slice";
 import { useDispatch } from "react-redux";
 
 
@@ -28,18 +29,33 @@ export const useChat = () => {
                 content: "",
                 timestamp: Date.now()
             }))
+        } else {
+            dispatch(appendMessage({
+                chatId,
+                message: { role: "user", content: message }
+            }))
+            dispatch(appendMessage({
+                chatId,
+                message: { role: "ai", content: "" }
+            }))
         }
 
         await getAiResponse({
             message, chatId,
             onContent: (content) => {
-                dispatch(appendTempMessageContent({ index: 1, content }))
+                if (!chatId) {
+                    dispatch(appendTempMessageContent({ index: 1, content }))
+                } else {
+                    dispatch(appendMessageContent({ chatId, content }))
+                }
             },
             onChat: (chat) => {
                 dispatch(setTempChat({ chat }))
             },
             onComplete: () => {
-                dispatch(setChatFromTempChat())
+                if (!chatId) {
+                    dispatch(setChatFromTempChat())
+                }
             }
         })
     }

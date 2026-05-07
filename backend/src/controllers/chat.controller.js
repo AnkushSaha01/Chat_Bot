@@ -8,6 +8,7 @@ export async function handleMessage(req, res) {
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
 
 
     const generateTitle = async () => {
@@ -26,14 +27,21 @@ export async function handleMessage(req, res) {
         let AIMessage = ""
 
         for await (const chunk of stream) {
-            AIMessage += chunk[ 0 ].contentBlocks[ 0 ].text;
-            res.write(`data: ${JSON.stringify({ text: chunk[ 0 ].contentBlocks[ 0 ].text })}\n\n`);
+            // Safely extract text from the chunk, handling different possible Langchain formats
+            const text = chunk?.content || chunk?.[0]?.content || chunk?.[0]?.contentBlocks?.[0]?.text || "";
+            
+            if (text) {
+                AIMessage += text;
+                res.write(`data: ${JSON.stringify({ text })}\n\n`);
+            }
         }
 
         return AIMessage
     }
 
     const [ chat, AIMessage ] = await Promise.all([ generateTitle(), aiStream() ])
+    console.log(chat)
+    console.log(AIMessage)
 
     // res.write(`data: [DONE]\n\n`);
     res.end()

@@ -10,6 +10,12 @@ export const chatSlice = createSlice({
         tempMessages: []
     },
     reducers: {
+        setCurrentChatId: (state, action) => {
+            state.currentChatId = action.payload;
+            if (!action.payload) {
+                state.tempMessages = [];
+            }
+        },
         setChats: (state, action) => {
             state.chats = action.payload;
         },
@@ -19,7 +25,14 @@ export const chatSlice = createSlice({
         },
         appendMessage: (state, action) => {
             const { chatId, message: { role, content } } = action.payload
-            state.chats[ chatId ].messages.push({ role, message: { role, content } })
+            state.chats[ chatId ].messages.push({ role, content, timestamp: Date.now() })
+        },
+        appendMessageContent: (state, action) => {
+            const { chatId, content } = action.payload
+            const messages = state.chats[ chatId ].messages
+            if (messages.length > 0) {
+                messages[messages.length - 1].content += content
+            }
         },
         appendTempMessage: (state, action) => {
 
@@ -39,11 +52,13 @@ export const chatSlice = createSlice({
             state.tempChat = action.payload.chat
         },
         setChatFromTempChat: (state) => {
-            state.chats[ state.tempChat.id ] = state.tempChat
-            state.chats[ state.tempChat.id ].messages = state.tempMessages
-            state.currentChatId = state.tempChat.id
-            state.tempChat = null
-            state.tempMessages = []
+            if (state.tempChat) {
+                state.chats[ state.tempChat.id ] = state.tempChat;
+                state.chats[ state.tempChat.id ].messages = state.tempMessages;
+                state.currentChatId = state.tempChat.id;
+                state.tempChat = null;
+            }
+            state.tempMessages = [];
         }
     }
 })
@@ -52,8 +67,10 @@ export const chatSlice = createSlice({
 export const { setChats,
     addChat,
     appendMessage,
+    appendMessageContent,
     appendTempMessage,
     appendTempMessageContent,
     setTempChat,
-    setChatFromTempChat } = chatSlice.actions
+    setChatFromTempChat,
+    setCurrentChatId } = chatSlice.actions
 export default chatSlice.reducer

@@ -1,10 +1,16 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { useChat } from '../chats/useChat';
+import Sidebar from './shared/Sidebar';
 
 export default function Home() {
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState([]);
+  const { currentChatId, chats, tempMessages } = useSelector((state) => state.chat);
+  const { handleGetAIResponse } = useChat();
   const messagesEndRef = useRef(null);
+
+  const messages = currentChatId && chats[currentChatId] ? chats[currentChatId].messages : tempMessages;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -14,23 +20,18 @@ export default function Home() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
     
-    // Add user message
-    const newMessages = [...messages, { role: 'user', content: input }];
-    setMessages(newMessages);
+    const userMessage = input;
     setInput('');
     
     // Reset textarea height
     const textarea = document.getElementById('chat-input');
     if (textarea) textarea.style.height = '48px';
     
-    // Simulate AI response
-    setTimeout(() => {
-      setMessages([...newMessages, { role: 'ai', content: 'This is a simulated response. I am a minimalistic AI interface.' }]);
-    }, 1000);
+    await handleGetAIResponse({ message: userMessage, chatId: currentChatId });
   };
 
   const handleKeyDown = (e) => {
@@ -47,9 +48,11 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#131314] text-neutral-200 font-sans selection:bg-neutral-700">
-      {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4">
+    <div className="flex h-screen bg-[#131314] overflow-hidden">
+      <Sidebar />
+      <div className="flex-1 flex flex-col min-w-0 bg-[#131314] text-neutral-200 font-sans selection:bg-neutral-700 relative">
+        {/* Header */}
+        <header className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-2">
           <span className="text-xl font-medium tracking-wide text-neutral-300">Gemini</span>
           <span className="text-[10px] uppercase tracking-wider bg-neutral-800/80 text-neutral-400 px-2 py-1 rounded-full font-semibold">Advanced</span>
@@ -60,7 +63,7 @@ export default function Home() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto px-4 sm:px-6 w-full max-w-4xl mx-auto pb-36 pt-8 scroll-smooth">
+      <main className="flex-1 overflow-y-auto px-4 sm:px-6 w-full max-w-4xl mx-auto pb-36 pt-8 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-[70vh] opacity-90">
             <h1 className="text-4xl sm:text-[3.5rem] font-medium tracking-tight mb-2 bg-linear-to-r from-blue-400 via-indigo-400 to-purple-400 text-transparent bg-clip-text">
@@ -93,7 +96,7 @@ export default function Home() {
       </main>
 
       {/* Input Area */}
-      <div className="fixed bottom-0 left-0 right-0 bg-linear-to-t from-[#131314] via-[#131314] to-transparent pt-10 pb-6 px-4 md:px-8">
+      <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-[#131314] via-[#131314] to-transparent pt-10 pb-6 px-4 md:px-8">
         <div className="max-w-4xl mx-auto relative">
           <form 
             onSubmit={handleSubmit}
@@ -152,6 +155,7 @@ export default function Home() {
             </span>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
